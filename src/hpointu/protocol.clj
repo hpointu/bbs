@@ -1,4 +1,5 @@
-(ns hpointu.protocol)
+(ns hpointu.protocol
+  (:require [clojure.edn :as edn]))
 
 (defn payload-concat [payloads]
   (apply str payloads))
@@ -24,10 +25,19 @@
                (xf result {::index id ::payload recombined-payload}))
              result)))))))
 
+(defn chop [packet size]
+  (let [chopped (partition-all size (pr-str (::payload packet)))]
+    (for [[i c] (map-indexed vector chopped)]
+      {::id (::id packet)
+       ::payload (apply str c)
+       ::index i
+       ::total (count chopped)})))
+
+(chop {::id 22 ::payload "some long payload here"} 18)
 
 (def packets
-  [{::id 123 ::index 2 ::total 2 ::payload " toi"}
-   {::id 44 ::index 1 ::total 1 ::payload "Hello"}
-   {::id 123 ::index 1 ::total 2 ::payload "Coucou"}])
+  (-> (concat (chop {::id 123 ::payload "Coucou les amis"} 6)
+              (chop {::id 456 ::payload "Je suis un paquet perdu"} 8))
+      shuffle))
 
 (sequence (recompose) packets)
