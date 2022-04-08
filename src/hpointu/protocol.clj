@@ -8,7 +8,8 @@
   (->> segments
        (sort-by ::index)
        (map ::payload)
-       (payload-concat)))
+       (payload-concat)
+       (edn/read-string)))
 
 (defn recompose []
   (fn [xf]
@@ -33,11 +34,10 @@
        ::index i
        ::total (count chopped)})))
 
-(chop {::id 22 ::payload "some long payload here"} 18)
-
 (def packets
   (-> (concat (chop {::id 123 ::payload "Coucou les amis"} 6)
-              (chop {::id 456 ::payload "Je suis un paquet perdu"} 8))
+              (chop {::id 456 ::payload "Je suis un paquet perdu"} 8)
+              (chop {::id 789 ::payload {:some "payload" :with {:nested :thing}}} 8))
       shuffle))
 
 (sequence (recompose) packets)
